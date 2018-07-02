@@ -43,48 +43,61 @@ app.use(function (req, res, next) {
 
 process.env.SUPPRESS_NO_CONFIG_WARNING = 'y';
 async.each(_.drop(process.argv, 2), function (arg, callback) {
+
+  var createRunner = function (doc, callback) {
+    Runner.create({
+      appRoot: '.',
+      startWithErrors: true,
+      swagger: doc,
+      fittingsDirs: [ './fittings' ],
+      defaultPipe: 'swagger_controllers',
+      swaggerControllerPipe: 'swagger_controllers',
+      bagpipes: {
+        '_swagger_params_parser': {
+          name: 'swagger_params_parser',
+          jsonOptions: {
+            type: ['json', 'application/*+json'],
+            limit: 5 * 1024 * 1024
+          }
+        },
+        _router: {
+          name: 'swagger_router',
+          mockMode: false,
+          mockControllersDirs: [ 'api/mocks' ],
+          controllersDirs: [ './controllers' ]
+        },
+        'any_controllers': [
+          'cors',
+          'any_handler',
+          '_swagger_params_parser',
+          '_router'
+        ],
+        'swagger_controllers': [
+          'cors',
+          '_swagger_params_parser',
+          '_router'
+        ]
+      }
+    }, function (err, runner) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      runner.expressMiddleware().register(app);
+      callback();
+    });
+  };
+
   var swaggerDoc = yamljs.load(arg);
-  Runner.create({
-    appRoot: '.',
-    startWithErrors: true,
-    swagger: swaggerDoc,
-    fittingsDirs: [ './fittings' ],
-    defaultPipe: 'swagger_controllers',
-    swaggerControllerPipe: 'swagger_controllers',
-    bagpipes: {
-      '_swagger_params_parser': {
-        name: 'swagger_params_parser',
-        jsonOptions: {
-          type: ['json', 'application/*+json'],
-          limit: 5 * 1024 * 1024
-        }
-      },
-      _router: {
-        name: 'swagger_router',
-        mockMode: false,
-        mockControllersDirs: [ 'api/mocks' ],
-        controllersDirs: [ './controllers' ]
-      },
-      'any_controllers': [
-        'cors',
-        'any_handler',
-        '_swagger_params_parser',
-        '_router'
-      ],
-      'swagger_controllers': [
-        'cors',
-        '_swagger_params_parser',
-        '_router'
-      ]
-    }
-  }, function (err, runner) {
-    if (err) {
-      callback(err);
-      return;
-    }
-    runner.expressMiddleware().register(app);
-    callback();
-  });
+  if (swaggerDoc.swagger) {
+    createRunner(swaggerDoc, callback);
+  } else if (swaggerDoc.Resources) {
+    async.each(_.filter(swaggerDoc.Resources, { Type: 'AWS::ApiGateway::RestApi' }), function (resource, callback) {
+      createRunner(resource.Properties.Body, callback);
+    }, callback);
+  } else {
+    callback(new Error('Invalid swagger YAML document: ' + arg));
+  }
 }, function (err) {
   if (err) {
     console.error(err);
