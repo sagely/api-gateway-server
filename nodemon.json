@@ -5,6 +5,7 @@
   ],
   "watch": [
     "../sagely-calendar-print/build/package",
+    "../sagely-communications/build/package",
     "../sagely-reporting/build/package",
     "../sagely-microservices/build/package",
     "../sagely-rest/build/package",
