@@ -102,8 +102,9 @@ async.each(_.drop(process.argv, 2), function (arg, callback) {
   if (err) {
     console.error(err);
   } else {
-    http.createServer(app).listen(7111, function () {
-      console.log('API Gateway server listening on port 7111');
+    const port = process.env.API_GW_PORT || 7111;
+    http.createServer(app).listen(port, function () {
+      console.log('API Gateway server listening on port ' + port);
     });
   }
 });
