@@ -78,7 +78,7 @@ var awsSdk = {
           });
         };
 
-        handler(JSON.parse(params.Payload), {
+        const promise = handler(JSON.parse(params.Payload), {
           succeed(data) {
             console.error('WARN: Using deprecated context.succeed to complete lambda: ' + params.FunctionName);
             succeed(data);
@@ -94,6 +94,13 @@ var awsSdk = {
             succeed(data);
           }
         });
+        if (promise) {
+          promise.then(function (result) {
+            succeed(result);
+          }).catch(function (err) {
+            fail(err);
+          });
+        }
       }
       else {
         callback({
