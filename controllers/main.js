@@ -400,7 +400,7 @@ function handler(req, res) {
         }
       };
 
-      lambdaHandler(event, {
+      const promise = lambdaHandler(event, {
         succeed(result) {
           console.error('WARN: Using deprecated context.succeed to complete lambda ' + lambdaName);
           succeed(result);
@@ -416,6 +416,14 @@ function handler(req, res) {
           succeed(result);
         }
       });
+      if (promise) {
+        promise.then(function (result) {
+          succeed(result);
+        }).catch(function (err) {
+          fail(err);
+        });
+      }
+
       callback(null);
     }
   ], function (error) {
