@@ -10,7 +10,7 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "async": "2.6.0",
+    "async": "3.2.2",
     "body-parser": "1.18.2",
     "express": "4.16.3",
     "js-string-escape": "1.0.1",
