@@ -9,6 +9,11 @@
   "scripts": {
     "start": "node server.js"
   },
+  "overrides": {
+    "config": "^3.3.12",
+    "bagpipes": "^0.2.2",
+    "readable-stream": "^4.7.0"
+  },
   "dependencies": {
     "async": "2.6.0",
     "body-parser": "1.18.2",
