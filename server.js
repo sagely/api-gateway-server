@@ -1,5 +1,11 @@
 'use strict';
 
+// Polyfill util.isError for Node.js v24+ compatibility (used by bagpipes)
+const util = require('util');
+if (!util.isError) {
+  util.isError = (e) => e instanceof Error;
+}
+
 const async = require('async');
 const express = require('express');
 const http = require('http');
